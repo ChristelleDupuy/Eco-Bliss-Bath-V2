@@ -100,5 +100,54 @@ cypress/screenshots
 cypress/videos
 ```
 
-> ℹ️ Les tests actuels couvrent principalement l’API.  
-> Des scénarios UI critiques pourront être ajoutés progressivement.
+> ℹ️ Les tests actuels couvrent l’API, des smoke tests UI, des tests XSS et deux scénarios fonctionnels critiques.  
+
+---
+
+## 🧪 Détail des tests automatisés
+
+Les tests Cypress couvrent plusieurs niveaux de validation de l’application.
+
+### ✅ Tests API
+Les tests API vérifient le bon fonctionnement des endpoints critiques :
+- Authentification (`/register`, `/login`, `/me`)
+- Produits (`/products`, `/products/random`, `/products/{id}`)
+- Avis clients (`/reviews` en GET et POST)
+
+Objectifs :
+- Vérifier les statuts HTTP
+- Contrôler la structure des réponses JSON
+- Détecter rapidement toute régression côté backend
+
+---
+
+### ✅ Smoke tests UI
+Des smoke tests front ont été mis en place afin de vérifier la stabilité globale de l’application :
+- Chargement de la page d’accueil
+- Accès au catalogue produits
+- Accès à la page de connexion
+- Accès au panier (ou redirection vers la page de connexion si l’utilisateur n’est pas authentifié)
+
+Objectif :
+- Identifier rapidement une régression bloquante sur les parcours principaux.
+
+---
+
+### 🔐 Tests de sécurité – XSS
+Un test de sécurité a été implémenté afin de vérifier qu’un script injecté dans un commentaire n’est pas exécuté côté navigateur.
+
+⚠️ Limite connue :
+- Le formulaire d’ajout de commentaire est uniquement accessible aux utilisateurs connectés.
+- En l’absence de session valide, le test dépend de prérequis fonctionnels non satisfaits.
+
+---
+
+### ⚙️ Tests fonctionnels
+Deux scénarios fonctionnels critiques ont été sélectionnés et automatisés :
+- Connexion utilisateur
+- Accès au panier / commandes après connexion
+
+Statut :
+- Les scénarios sont écrits et versionnés
+- Certains tests peuvent échouer en raison de contraintes applicatives ou de données de test
+- Ces comportements sont documentés dans le bilan de campagne de tests
