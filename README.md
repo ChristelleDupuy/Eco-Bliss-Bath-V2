@@ -39,80 +39,57 @@ npm install (si vous préférez)
 ```
 ---
 
-## 🧪 Tests automatisés – Cypress
+## Tests automatisés – Cypress
 
-Des tests automatisés ont été mis en place avec **Cypress** afin de vérifier la fiabilité de l’API (authentification, produits, avis).  
+Des tests automatisés ont été mis en place avec Cypress afin de vérifier la fiabilité, la stabilité et la sécurité de l’application Eco Bliss Bath.
 Ils permettent de détecter rapidement des régressions avant chaque livraison.
 
 ---
 
-### ✔️ Installation des dépendances (racine du projet)
+### Installation des dépendances (racine du projet)
 
-```bash
-npm install
-```
+Depuis la racine du projet :
 
-Assurez-vous que l’API est bien lancée (`docker compose up`) avant d’exécuter les tests.
+    npm install
 
-### 🌐 Accès API & Documentation
-API disponible :
-http://localhost:8081
-
-Swagger :
-http://localhost:8081/api/doc
+Assurez-vous que :
+- l’API est bien lancée (docker compose up -d)
+- le frontend est bien lancé (npm start)
 
 ---
 
-### ▶️ Lancer les tests en mode interface (visuel)
+### Lancer les tests en mode interface (visuel)
 
-```bash
-npx cypress open
-```
+    npx cypress open
 
-Puis choisissez les tests dans :
-
-```
+Puis sélectionnez les tests dans :
 cypress/e2e
-```
 
 ---
 
-### ▶️ Lancer tous les tests en mode headless (console)
+### Lancer tous les tests en mode headless (console)
 
-```bash
-npx cypress run
-```
+    npx cypress run
 
 ---
 
-### 📄 Générer un rapport simple
+### Générer un rapport simple
 
-```bash
-npx cypress run > cypress-report.txt
-```
+    npx cypress run > cypress-report.txt
 
-Le fichier sera généré à la racine du projet.
-
-Les médias générés par Cypress :
-
-```
-cypress/screenshots
-cypress/videos
-```
-
-> ℹ️ Les tests actuels couvrent l’API, des smoke tests UI, des tests XSS et deux scénarios fonctionnels critiques.  
+Les médias générés par Cypress sont disponibles ici :
+- cypress/screenshots
+- cypress/videos
 
 ---
 
-## 🧪 Détail des tests automatisés
+## Détail des tests automatisés
 
-Les tests Cypress couvrent plusieurs niveaux de validation de l’application.
-
-### ✅ Tests API
-Les tests API vérifient le bon fonctionnement des endpoints critiques :
-- Authentification (`/register`, `/login`, `/me`)
-- Produits (`/products`, `/products/random`, `/products/{id}`)
-- Avis clients (`/reviews` en GET et POST)
+### Tests API
+- Authentification (/register, /login, /me)
+- Produits (/products, /products/random, /products/{id})
+- Avis clients (/reviews GET / POST)
+- Création d’un avis sans authentification (403 attendu)
 
 Objectifs :
 - Vérifier les statuts HTTP
@@ -121,33 +98,57 @@ Objectifs :
 
 ---
 
-### ✅ Smoke tests UI
-Des smoke tests front ont été mis en place afin de vérifier la stabilité globale de l’application :
+### Smoke tests UI
 - Chargement de la page d’accueil
 - Accès au catalogue produits
 - Accès à la page de connexion
-- Accès au panier (ou redirection vers la page de connexion si l’utilisateur n’est pas authentifié)
+- Accès au panier ou redirection vers la page de connexion
 
 Objectif :
-- Identifier rapidement une régression bloquante sur les parcours principaux.
+- Identifier rapidement une régression bloquante
 
 ---
 
-### 🔐 Tests de sécurité – XSS
-Un test de sécurité a été implémenté afin de vérifier qu’un script injecté dans un commentaire n’est pas exécuté côté navigateur.
+### Tests de sécurité – XSS
+- Injection de script dans un commentaire
+- Vérification que le script n’est pas exécuté côté navigateur
 
-⚠️ Limite connue :
-- Le formulaire d’ajout de commentaire est uniquement accessible aux utilisateurs connectés.
-- En l’absence de session valide, le test dépend de prérequis fonctionnels non satisfaits.
+Limite connue :
+- Test dépendant d’un utilisateur authentifié
 
 ---
 
-### ⚙️ Tests fonctionnels
-Deux scénarios fonctionnels critiques ont été sélectionnés et automatisés :
+### Tests fonctionnels
+Scénarios automatisés :
 - Connexion utilisateur
-- Accès au panier / commandes après connexion
+- Accès au panier après connexion
+- Ajout d’un produit en stock
+- Tentative d’ajout d’un produit hors stock
 
-Statut :
-- Les scénarios sont écrits et versionnés
-- Certains tests peuvent échouer en raison de contraintes applicatives ou de données de test
-- Ces comportements sont documentés dans le bilan de campagne de tests
+---
+
+## Résultats de la dernière exécution
+
+- Specs exécutées : 15
+- Tests (it) exécutés : 20
+- Tests passés : 17
+- Tests échoués : 3
+- Tests ignorés : 0
+
+Remarque :
+- “Specs exécutées” = nombre de fichiers .cy.js
+- “Tests exécutés” = total des blocs it() dans tous les fichiers
+
+Les tests en échec concernent des scénarios fonctionnels dépendants :
+- de l’authentification
+- des règles métier
+- des données disponibles
+
+Aucune correction applicative n’a été effectuée, conformément aux consignes.
+
+---
+
+Ce projet s’inscrit dans le cadre d’une mission QA visant à :
+- définir une stratégie de tests pertinente
+- automatiser les scénarios critiques
+- produire un bilan de campagne exploitable
