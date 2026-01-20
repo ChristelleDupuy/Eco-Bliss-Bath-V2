@@ -15,10 +15,7 @@ describe("API Cart - Eco Bliss Bath (out of stock)", () => {
             email,
             firstname: "QA",
             lastname: "Test",
-            plainPassword: {
-              first: password,
-              second: password,
-            },
+            plainPassword: { first: password, second: password },
           },
           failOnStatusCode: false,
         })
@@ -39,38 +36,109 @@ describe("API Cart - Eco Bliss Bath (out of stock)", () => {
         });
     }
   
-    function getOutOfStockProductId() {
-      return cy
-        .request(`${API_BASE_URL}/products`)
-        .then((res) => {
-          expect(res.status).to.eq(200);
-          expect(res.body).to.be.an("array").and.not.be.empty;
-  
-          const oos = res.body.find((p) => p.availableStock === 0);
-  
-          expect(oos, "Produit avec stock = 0").to.exist;
-          return oos.id;
-        });
+    function getProducts() {
+      return cy.request(`${API_BASE_URL}/products`).then((res) => {
+        expect(res.status).to.eq(200);
+        expect(res.body).to.be.an("array").and.not.be.empty;
+        return res.body;
+      });
     }
   
-    it("Ajouter un produit hors stock dans le panier doit échouer (4xx)", () => {
-      registerAndLogin().then((token) => {
-        getOutOfStockProductId().then((productId) => {
-          cy.request({
-            method: "PUT",
-            url: `${API_BASE_URL}/orders/add`,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: { product: productId, quantity: 1 },
-            failOnStatusCode: false,
-          }).then((res) => {
-            expect(res.status, `Status reçu: ${res.status}`).to.be.gte(400).and.lt(500);
+    function getOutOfStockProduct() {
+      return getProducts().then((products) => {
+        const oos = products.find((p) => Number(p.availableStock) <= 0);
+        expect(oos, "Produit hors stock (<= 0)").to.exist;
+        return oos;
+      });
+    }
   
-            if (res.body && typeof res.body === "object") {
-              console.log("Réponse out-of-stock:", res.body);
-            }
+    function getLimitedStockProduct() {
+      return getProducts().then((products) => {
+        const limited = products.find(
+          (p) => Number(p.availableStock) > 0 && Number(p.availableStock) < 10
+        );
+        expect(limited, "Produit avec stock limité (1..9)").to.exist;
+        return limited;
+      });
+    }
+  
+    function getCurrentCart(token) {
+      return cy.request({
+        method: "GET",
+        url: `${API_BASE_URL}/orders`,
+        headers: { Authorization: `Bearer ${token}` },
+        failOnStatusCode: false,
+      });
+    }
+  
+    function addToCart(token, productId, quantity) {
+      return cy.request({
+        method: "PUT",
+        url: `${API_BASE_URL}/orders/add`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: { product: productId, quantity },
+        failOnStatusCode: false,
+      });
+    }
+  
+    function findLineByProductId(order, productId) {
+      const lines = order?.orderLines || [];
+      return lines.find((l) => l?.product?.id === productId);
+    }
+  
+    it("Produit hors stock : le panier ne doit pas contenir le produit après tentative d'ajout", () => {
+      registerAndLogin().then((token) => {
+        getOutOfStockProduct().then((product) => {
+          getCurrentCart(token).then((before) => {
+            expect([200, 404]).to.include(before.status);
+  
+            const beforeOrder = before.status === 200 ? before.body : null;
+            const beforeLine = beforeOrder ? findLineByProductId(beforeOrder, product.id) : null;
+            const beforeQty = beforeLine?.quantity ?? 0;
+  
+            addToCart(token, product.id, 1).then((addRes) => {
+              expect(addRes.status).to.eq(200);
+  
+              getCurrentCart(token).then((after) => {
+                expect(after.status).to.eq(200);
+  
+                const afterLine = findLineByProductId(after.body, product.id);
+                const afterQty = afterLine?.quantity ?? 0;
+  
+                expect(
+                  afterQty,
+                  `BUG si > ${beforeQty} : produit hors stock ajouté (productId=${product.id}, stock=${product.availableStock})`
+                ).to.eq(beforeQty);
+              });
+            });
+          });
+        });
+      });
+    });
+  
+    it("Quantité > stock : la quantité en panier ne doit pas dépasser le stock disponible", () => {
+      registerAndLogin().then((token) => {
+        getLimitedStockProduct().then((product) => {
+          const stock = Number(product.availableStock);
+          const requested = stock + 1;
+  
+          addToCart(token, product.id, requested).then((addRes) => {
+            expect(addRes.status).to.eq(200);
+
+            getCurrentCart(token).then((after) => {
+              expect(after.status).to.eq(200);
+  
+              const afterLine = findLineByProductId(after.body, product.id);
+              const afterQty = afterLine?.quantity ?? 0;
+  
+              expect(
+                afterQty,
+                `BUG si > ${stock} : quantité en panier dépasse le stock (productId=${product.id})`
+              ).to.be.at.most(stock);
+            });
           });
         });
       });
