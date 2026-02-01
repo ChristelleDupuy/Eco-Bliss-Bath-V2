@@ -1,6 +1,21 @@
 <div align="center">
 
-# OpenClassrooms - Eco-Bliss-Bath
+# Eco Bliss Bath – Tests automatisés Cypress
+
+Eco Bliss Bath est un site e-commerce spécialisé dans la vente de produits de bain éco-responsables.
+L’application permet aux utilisateurs de consulter un catalogue de produits, de créer un compte, de se connecter, d’ajouter des produits à un panier et de publier des avis.
+
+Une première campagne de tests manuels a été réalisée afin d’identifier les fonctionnalités critiques et les principaux risques métier.
+À la suite de cette campagne, une stratégie d’automatisation a été définie afin de sécuriser les parcours essentiels et de détecter rapidement les régressions.
+
+Ce projet a pour objectif de mettre en place une première base de tests automatisés avec Cypress, en se concentrant sur :
+
+- Les fonctionnalités critiques pour le business (connexion, panier)
+- Les endpoints API principaux (authentification, produits, avis, panier)
+- Des smoke tests UI pour vérifier la disponibilité globale de l’application
+- Un test de sécurité ciblé (XSS sur les avis)
+
+L’automatisation vise à améliorer la fiabilité de l’application, réduire le risque de régressions et faciliter la validation avant mise en production.
 </div>
 
 <p align="center">
@@ -83,6 +98,8 @@ Les médias générés par Cypress sont disponibles ici :
 
 ---
 
+Les tests sont organisés par type afin de faciliter la maintenance et la compréhension.
+
 ## Détail des tests automatisés
 
 ### Tests API
@@ -130,10 +147,12 @@ Scénarios automatisés :
 ## Résultats de la dernière exécution
 
 - Specs exécutées : 15
-- Tests (it) exécutés : 20
+- Tests (it) exécutés : 21
 - Tests passés : 17
 - Tests échoués : 3
 - Tests ignorés : 0
+
+Les échecs correspondent à des anomalies réelles détectées dans l’application et font l’objet d’un rapport dans le bilan de campagne.
 
 Remarque :
 - “Specs exécutées” = nombre de fichiers .cy.js
@@ -151,4 +170,4 @@ Aucune correction applicative n’a été effectuée, conformément aux consigne
 Ce projet s’inscrit dans le cadre d’une mission QA visant à :
 - définir une stratégie de tests pertinente
 - automatiser les scénarios critiques
-- produire un bilan de campagne exploitable
+- produire un bilan de campagne permettant de décider d’un GO / NO GO pour la mise en production
